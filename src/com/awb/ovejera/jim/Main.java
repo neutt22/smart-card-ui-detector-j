@@ -351,6 +351,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         addKeyListener(this);
         setFocusable(true);
 
+        new IdleWindow().setVisible(true);
+
     }
 
     @Override

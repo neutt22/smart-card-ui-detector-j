@@ -262,6 +262,7 @@ public class NewEntry extends JFrame implements ActionListener {
     private JButton btnClose = new JButton("", closeIcon);
 
     // TODO: Count table rows as default ID
+    // TODO: Remove name limiter
     public NewEntry(){
         super("AWB - New Entry");
 
