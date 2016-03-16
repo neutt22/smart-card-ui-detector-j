@@ -157,21 +157,21 @@ public class NewEntry extends JFrame implements ActionListener {
     private Card c;
     private CardChannel cc;
 
+
     private JPanel mainPane = new JPanel(new MigLayout("insets 0 0 0 0", "[grow]", "[grow]")){
         @Override
         protected void paintComponent(Graphics grphcs) {
             super.paintComponent(grphcs);
-            Graphics2D g2d = (Graphics2D) grphcs;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-//            GradientPaint gp = new GradientPaint(0, 0, getBackground().brighter().brighter(), 0, getHeight(), getBackground().darker().darker());
-            GradientPaint gp = new GradientPaint(0, 0, new Color(153, 204, 255), 0, getHeight(), new Color(179, 217, 255));
-            g2d.setPaint(gp);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
+//            Graphics2D g2d = (Graphics2D) grphcs;
+//            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//            GradientPaint gp = new GradientPaint(0, 0, new Color(153, 204, 255), 0, getHeight(), new Color(153, 204, 255));
+//            g2d.setPaint(gp);
+//            g2d.fillRect(0, 0, getWidth(), getHeight());
 
         }
     };
-    private JPanel rightPane = new JPanel(new MigLayout(", insets 0 0 0 10", "[grow]", "[grow]")){
+    private JPanel headerPane = new JPanel(new MigLayout(",insets 0 0 0 0", "[grow]", "[grow]"));
+    private JPanel rightPane = new JPanel(new MigLayout(", insets 0 0 0 0", "[grow]", "[grow]")){
         @Override
         protected void paintComponent(Graphics g){
             super.paintComponent(g);
@@ -179,90 +179,131 @@ public class NewEntry extends JFrame implements ActionListener {
         }
     };
     private JPanel leftPane = new JPanel(new MigLayout(", insets 0 0 0 0", "[grow]", "[grow]")){
+
         @Override
         protected void paintComponent(Graphics g){
             super.paintComponent(g);
-            setOpaque(false);
+            setBackground(Color.white);
         }
     };
 
     // IMAGES
-    private ImageIcon avatarIcon = new ImageIcon(Main.class.getResource("/res/avatar.jpg"));
-    private ImageIcon mezzaIcon = new ImageIcon(Main.class.getResource("/res/mezza-2-logo.jpg"));
+    private ImageIcon avatarIcon = new ImageIcon(Main.class.getResource("/res/avatar-new.png"));
+    private ImageIcon mezzaIcon = new ImageIcon(Main.class.getResource("/res/mezza-logo.png"));
     private ImageIcon awbIcon = new ImageIcon(Main.class.getResource("/res/awb-logo-dev.png"));
-    private ImageIcon checkIcon = new ImageIcon(Main.class.getResource("/res/check.png"));
-    private ImageIcon closeIcon = new ImageIcon(Main.class.getResource("/res/close.png"));
+
+    // HEADER
+    private JLabel lblMezzaIcon = new JLabel("", mezzaIcon, JLabel.LEFT);
+    private JLabel lblClock = new JLabel("New Record", null, JLabel.RIGHT);
 
     // LEFT PANE LABEL
     private JLabel lblAvatarIcon = new JLabel("", avatarIcon, JLabel.CENTER);
-    private JLabel lblMezzaIcon = new JLabel("", mezzaIcon, JLabel.CENTER);
+    private JLabel _lblId = new JLabel("#");
+    private JTextField txtId = new JTextField("0001");
+    private JLabel lblPoweredBy = new JLabel("powered by ");
+    private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
+    private JLabel lblTapYourCard = new JLabel("TAP YOUR CARD");
 
     // RIGHT PANE LABELS
-    private JLabel _lblId = new JLabel("<html><span style='font-size:38px; color:gray;'>ID:</span></html>");
-    private JLabel _lblName = new JLabel("<html><span style='font-size:38px; color:gray;'>NAME:</span></html>");
-    private JLabel _lblTower = new JLabel("<html><span style='font-size:38px; color:gray;'>TOWER:</span></html>");
-    private JLabel _lblUnit = new JLabel("<html><span style='font-size:38px; color:gray;'>UNIT:</span></html>");
-    private JLabel _lblCStatus = new JLabel("<html><span style='font-size:38px; color:gray;'>STATUS:</span></html>");
+    private JLabel _lblTower = new JLabel("TOWER");
+    private JLabel _lblUnit = new JLabel("UNIT");
+    private JPanel infoPane = new JPanel(new MigLayout("insets 10", "[grow]", "[grow]"));
 
     // RIGHT PANE DYNAMIC TEXT
-    private JTextField txtId = new JTextField();
-    private JTextField txtName = new JTextField();
-    private JTextField txtTower = new JTextField();
-    private JTextField txtUnit = new JTextField();
-    private JTextField txtCStatus = new JTextField();
+    private JTextField txtName = new JTextField("");
+    private JTextField txtCStatus = new JTextField("Owner");
+    private JTextField txtTower = new JTextField("1");
+    private JTextField txtUnit = new JTextField("1000");
+    private JTextArea txtInfo = new JTextArea("Write something here...");
 
-    // FOOTER PANE
-    private JPanel footerPane = new JPanel(new MigLayout("", "[grow]", "[grow]"));
-    private JLabel lblStatus = new JLabel("<html><span style='font-size:50px; color:gray;'>INITIALIZING...</span></html>");
-    private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
+
+    // FOOTER PANE DYNAMIC LABELS
+    private JLabel lblStatus = new JLabel("TAP YOUR CARD", null, JLabel.CENTER);
+
+    private ImageIcon checkIcon = new ImageIcon(Main.class.getResource("/res/check.png"));
+    private ImageIcon closeIcon = new ImageIcon(Main.class.getResource("/res/close.png"));
+
     private JButton btnSave = new JButton("", checkIcon);
     private JButton btnClose = new JButton("", closeIcon);
 
     public NewEntry(){
         super("AWB - New Entry");
 
-        leftPane.add(lblMezzaIcon, "wrap, top, left");
-        leftPane.add(lblAvatarIcon, "wrap, top, center");
+        lblAvatarIcon.setBorder(LineBorder.createGrayLineBorder());
+        lblClock.setFont(new Font("Arial", Font.PLAIN, 45));
+        lblClock.setForeground(Color.decode("#f2f2f2"));
 
-        // Right components styles
-        txtId.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtId.setBorder(LineBorder.createBlackLineBorder());
+        _lblId.setForeground(Color.decode("#666666"));
+        _lblId.setFont(new Font("Arial", Font.BOLD, 45));
+        txtId.setFont(new Font("Arial", Font.BOLD, 45));
+        txtId.setForeground(Color.decode("#666666"));
+        txtId.setBackground(Color.decode("#f7f5f5"));
+        txtId.setHorizontalAlignment(JTextField.CENTER);
         txtId.setEditable(false);
-        txtName.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtName.setBorder(LineBorder.createBlackLineBorder());
-        txtTower.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtTower.setBorder(LineBorder.createBlackLineBorder());
-        txtUnit.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtUnit.setBorder(LineBorder.createBlackLineBorder());
-        txtCStatus.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtCStatus.setBorder(LineBorder.createBlackLineBorder());
+        lblTapYourCard.setFont(new Font("Arial", Font.BOLD, 40));
+        lblTapYourCard.setForeground(Color.decode("#666666"));
+        lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
+        lblPoweredBy.setForeground(Color.decode("#666666"));
 
-        rightPane.add(_lblId, "wrap");
-        rightPane.add(txtId, "wrap, gapbottom 5%, w 250");
-        rightPane.add(_lblName, "wrap");
-        rightPane.add(txtName, "span, wrap, gapbottom 5%, growx");
-        rightPane.add(_lblTower);
-        rightPane.add(_lblUnit, "wrap");
-        rightPane.add(txtTower, "gapbottom 5%, top, growx");
-        rightPane.add(txtUnit, "gapbottom 5%, wrap, top, w 250");
-        rightPane.add(_lblCStatus, "wrap");
-        rightPane.add(txtCStatus, "w 250");
+        txtName.setForeground(Color.decode("#414141"));
+        txtName.setFont(new Font("Arial", Font.BOLD, 70));
+        txtName.setBackground(Color.decode("#f7f5f5"));
+        txtName.setHorizontalAlignment(JTextField.CENTER);
+        txtCStatus.setFont(new Font("Arial", Font.PLAIN, 45));
+        txtCStatus.setForeground(Color.decode("#666666"));
+        txtCStatus.setBackground(Color.decode("#f7f5f5"));
+        txtCStatus.setHorizontalAlignment(JTextField.CENTER);
+        _lblTower.setForeground(Color.decode("#666666"));
+        _lblTower.setFont(new Font("Arial", Font.PLAIN, 45));
+        _lblUnit.setForeground(Color.decode("#666666"));
+        _lblUnit.setFont(new Font("Arial", Font.PLAIN, 45));
+        txtTower.setForeground(Color.decode("#434343"));
+        txtTower.setFont(new Font("Arial", Font.BOLD, 45));
+        txtTower.setBackground(Color.decode("#f7f5f5"));
+        txtTower.setHorizontalAlignment(JTextField.CENTER);
+        txtUnit.setForeground(Color.decode("#434343"));
+        txtUnit.setFont(new Font("Arial", Font.BOLD, 45));
+        txtUnit.setBackground(Color.decode("#f7f5f5"));
+        txtUnit.setHorizontalAlignment(JTextField.CENTER);
+        txtInfo.setOpaque(false);
+        txtInfo.setForeground(Color.decode("#ff0000"));
+        txtInfo.setFont(new Font("Arial", Font.PLAIN, 30));
+        txtInfo.setLineWrap(true);
+        txtInfo.setWrapStyleWord(true);
+        txtInfo.setEditable(true);
+        infoPane.setOpaque(false);
+        infoPane.setBorder(BorderFactory.createLineBorder(Color.decode("#ff0000"), 2));
 
-        footerPane.setBackground(Color.white);
-        btnSave.setFont(new Font("Arial", Font.PLAIN, 20));
-        btnClose.setFont(new Font("Arial", Font.PLAIN, 20));
-        btnSave.setActionCommand("save");
-        btnClose.setActionCommand("close");
-        btnSave.addActionListener(this);
-        btnClose.addActionListener(this);
-        footerPane.add(lblStatus, "gapleft 1%");
-        footerPane.add(lblAwbIcon, "right, wrap, span 1 2");
-        footerPane.add(btnSave, "growy, split, w 250");
-        footerPane.add(btnClose, "growy, w 250");
+        headerPane.setBackground(Color.decode("#1c4587"));
+        headerPane.add(lblMezzaIcon, "w 50%");
+        headerPane.add(lblClock, "w 50%, gapright 2%");
 
-        mainPane.add(leftPane, "grow, w 40%");
-        mainPane.add(rightPane, "grow, w 60%, wrap");
-        mainPane.add(footerPane, "grow, span");
+        leftPane.add(lblAvatarIcon, "center, wrap, bottom, gaptop 5%");
+        leftPane.add(_lblId, "center, span, split, top");
+        leftPane.add(txtId, "wrap, w 20%, top");
+        leftPane.add(lblTapYourCard, "span, center, wrap");
+        leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
+        leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
+
+        rightPane.add(txtName, "center, growx, gaptop 5%, span, bottom, wrap");
+        rightPane.add(new JSeparator(), "center, top, w 80%, span 2 1, split, flowy");
+        rightPane.add(txtCStatus, "center, w 35%, wrap");
+        rightPane.add(_lblTower, "center, bottom");
+        rightPane.add(_lblUnit, "center, bottom, wrap");
+        rightPane.add(txtTower, "center, w 7%, top");
+        rightPane.add(txtUnit, "center, w 15%, top, wrap");
+        rightPane.add(Box.createHorizontalBox(), "grow, span, wrap");
+        rightPane.add(Box.createHorizontalBox(), "grow, span, wrap");
+        infoPane.add(txtInfo, "grow");
+        rightPane.add(infoPane, "growy, center, bottom, gapbottom 2%, span, w 80%");
+        rightPane.add(btnSave, "span, split, right");
+        rightPane.add(btnClose);
+
+        mainPane.setBackground(Color.decode("#efefef"));
+        mainPane.add(headerPane, "span, grow, dock north");
+        mainPane.add(leftPane, "grow, w 50%, h 100%");
+        mainPane.add(rightPane, "grow, w 50%, wrap");
+
         add(mainPane);
 
         setUndecorated(true);
@@ -271,7 +312,7 @@ public class NewEntry extends JFrame implements ActionListener {
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         // Press enter on the status field
-        txtCStatus.addActionListener(this);
+//        txtCStatus;
 
         cardWorker.execute();
 
