@@ -6,8 +6,7 @@ import javax.smartcardio.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.sql.Connection;
 import java.util.List;
 
@@ -158,6 +157,39 @@ public class NewEntry extends JFrame implements ActionListener {
     private CardChannel cc;
 
 
+    // Max name calculator
+    private KeyListener maxNameListener = new KeyListener() {
+        @Override
+        public void keyTyped(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+            String name = txtName.getText();
+
+            int len = name.length();
+
+            if(len > 20){
+                String newName = name.substring(0, 20);
+                txtName.setText(newName);
+            }else{
+                String newLen = len + "/" + MAX_NAME_LENGHT;
+                lblMaxLength.setText(newLen);
+            }
+
+//            len = txtName.getText().length();
+
+        }
+    };
+
+
     private JPanel mainPane = new JPanel(new MigLayout("insets 0 0 0 0", "[grow]", "[grow]")){
         @Override
         protected void paintComponent(Graphics grphcs) {
@@ -205,11 +237,14 @@ public class NewEntry extends JFrame implements ActionListener {
     private JLabel lblTapYourCard = new JLabel("TAP YOUR CARD");
 
     // RIGHT PANE LABELS
+    private JLabel _lblMaxLength = new JLabel("Max length: ");
     private JLabel _lblTower = new JLabel("TOWER");
     private JLabel _lblUnit = new JLabel("UNIT");
     private JPanel infoPane = new JPanel(new MigLayout("insets 10", "[grow]", "[grow]"));
 
     // RIGHT PANE DYNAMIC TEXT
+    private static final int MAX_NAME_LENGHT = 20;
+    private JLabel lblMaxLength = new JLabel("0/20");
     private JTextField txtName = new JTextField("");
     private JTextField txtCStatus = new JTextField("Owner");
     private JTextField txtTower = new JTextField("1");
@@ -245,6 +280,11 @@ public class NewEntry extends JFrame implements ActionListener {
         lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
         lblPoweredBy.setForeground(Color.decode("#666666"));
 
+        _lblMaxLength.setFont(new Font("Arial", Font.BOLD, 15));
+        _lblMaxLength.setForeground(Color.decode("#666666"));
+        lblMaxLength.setFont(new Font("Arial", Font.BOLD, 15));
+        lblMaxLength.setForeground(Color.decode("#666666"));
+        txtName.addKeyListener(maxNameListener);
         txtName.setForeground(Color.decode("#414141"));
         txtName.setFont(new Font("Arial", Font.BOLD, 70));
         txtName.setBackground(Color.decode("#f7f5f5"));
@@ -285,9 +325,11 @@ public class NewEntry extends JFrame implements ActionListener {
         leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
         leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
 
+        rightPane.add(_lblMaxLength, "span 2, split, bottom");
+        rightPane.add(lblMaxLength, "wrap, bottom");
         rightPane.add(txtName, "center, growx, gaptop 5%, span, bottom, wrap");
-        rightPane.add(new JSeparator(), "center, top, w 80%, span 2 1, split, flowy");
-        rightPane.add(txtCStatus, "center, w 35%, wrap");
+//        rightPane.add(new JSeparator(), "center, top, w 80%, span 2 1, split, flowy");
+        rightPane.add(txtCStatus, "center, w 35%, wrap, top, span");
         rightPane.add(_lblTower, "center, bottom");
         rightPane.add(_lblUnit, "center, bottom, wrap");
         rightPane.add(txtTower, "center, w 7%, top");
