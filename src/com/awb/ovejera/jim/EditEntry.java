@@ -526,7 +526,7 @@ public class EditEntry extends JFrame implements ActionListener {
         txtId.addActionListener(searchListener);
 
         // Press enter on the status field
-        txtCStatus.addActionListener(this);
+//        txtCStatus.addActionListener(this);
 
         // Disable delete and update button by default
         btnDelete.setEnabled(false);
