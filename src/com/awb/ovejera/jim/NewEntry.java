@@ -261,6 +261,7 @@ public class NewEntry extends JFrame implements ActionListener {
     private JButton btnSave = new JButton("", checkIcon);
     private JButton btnClose = new JButton("", closeIcon);
 
+    // TODO: Count table rows as default ID
     public NewEntry(){
         super("AWB - New Entry");
 
