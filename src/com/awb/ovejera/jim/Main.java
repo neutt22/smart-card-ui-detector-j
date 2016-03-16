@@ -40,14 +40,14 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     conn = awb_connection.connect();
 
                     // APPLICATION READY
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                    lblStatus.setText("TAP YOUR CARD");
                     statusFx.start();
 
                     // Wait for card
                     ct.waitForCardPresent(0);
 
                     // Notify user to wait for DB transaction
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE WAIT...</span></html>");
+                    lblStatus.setText("PLEASE WAIT...");
 
                     // Initiate request transaction
                     readCard();
@@ -170,7 +170,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
     });
 
     // CLOCK FX
-    private SimpleDateFormat format = new SimpleDateFormat("E, hh:mm:ss a MM/dd/YYYY");
+    private SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss a MMMM dd, YYYY");
     private Timer clockFx = new Timer(1000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -209,17 +209,16 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         @Override
         protected void paintComponent(Graphics grphcs) {
             super.paintComponent(grphcs);
-            Graphics2D g2d = (Graphics2D) grphcs;
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                    RenderingHints.VALUE_ANTIALIAS_ON);
-//            GradientPaint gp = new GradientPaint(0, 0, getBackground().brighter().brighter(), 0, getHeight(), getBackground().darker().darker());
-            GradientPaint gp = new GradientPaint(0, 0, new Color(153, 204, 255), 0, getHeight(), new Color(179, 217, 255));
-            g2d.setPaint(gp);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
+//            Graphics2D g2d = (Graphics2D) grphcs;
+//            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//            GradientPaint gp = new GradientPaint(0, 0, new Color(153, 204, 255), 0, getHeight(), new Color(153, 204, 255));
+//            g2d.setPaint(gp);
+//            g2d.fillRect(0, 0, getWidth(), getHeight());
 
         }
     };
-    private JPanel rightPane = new JPanel(new MigLayout(", insets 0 0 0 10", "[grow]", "[grow]")){
+    private JPanel headerPane = new JPanel(new MigLayout(",insets 0 0 0 0", "[grow]", "[grow]"));
+    private JPanel rightPane = new JPanel(new MigLayout(", insets 0 0 0 0", "[grow]", "[grow]")){
         @Override
         protected void paintComponent(Graphics g){
             super.paintComponent(g);
@@ -227,90 +226,113 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         }
     };
     private JPanel leftPane = new JPanel(new MigLayout(", insets 0 0 0 0", "[grow]", "[grow]")){
+
         @Override
         protected void paintComponent(Graphics g){
             super.paintComponent(g);
-            setOpaque(false);
+            setBackground(Color.white);
         }
     };
 
     // IMAGES
-    private ImageIcon avatarIcon = new ImageIcon(Main.class.getResource("/res/avatar.jpg"));
-    private ImageIcon mezzaIcon = new ImageIcon(Main.class.getResource("/res/mezza-2-logo.jpg"));
+    private ImageIcon avatarIcon = new ImageIcon(Main.class.getResource("/res/avatar.png"));
+    private ImageIcon mezzaIcon = new ImageIcon(Main.class.getResource("/res/mezza-logo.png"));
     private ImageIcon awbIcon = new ImageIcon(Main.class.getResource("/res/awb-logo-dev.png"));
+
+    // HEADER
+    private JLabel lblMezzaIcon = new JLabel("", mezzaIcon, JLabel.LEFT);
+    private JLabel lblClock = new JLabel("Clock initializing...", null, JLabel.RIGHT);
 
     // LEFT PANE LABEL
     private JLabel lblAvatarIcon = new JLabel("", avatarIcon, JLabel.CENTER);
-    private JLabel lblMezzaIcon = new JLabel("", mezzaIcon, JLabel.CENTER);
+    private JLabel _lblId = new JLabel("#");
+    private JLabel txtId = new JLabel("0001");
+    private JLabel lblPoweredBy = new JLabel("powered by ");
+    private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
 
     // RIGHT PANE LABELS
-    private JLabel _lblId = new JLabel("<html><span style='font-size:38px; color:gray;'>ID:</span></html>");
-    private JLabel _lblName = new JLabel("<html><span style='font-size:38px; color:gray;'>NAME:</span></html>");
-    private JLabel _lblTower = new JLabel("<html><span style='font-size:38px; color:gray;'>TOWER:</span></html>");
-    private JLabel _lblUnit = new JLabel("<html><span style='font-size:38px; color:gray;'>UNIT:</span></html>");
-    private JLabel _lblCStatus = new JLabel("<html><span style='font-size:38px; color:gray;'>RESIDENT STATUS:</span></html>");
+    private JLabel _lblTower = new JLabel("TOWER");
+    private JLabel _lblUnit = new JLabel("UNIT");
+    private JPanel infoPane = new JPanel(new MigLayout("insets 10", "[grow]", "[grow]"));
+
 
     // RIGHT PANE DYNAMIC TEXT
-    private JTextField txtId = new JTextField();
-    private JTextField txtName = new JTextField();
-    private JTextField txtTower = new JTextField();
-    private JTextField txtUnit = new JTextField();
-    private JTextField txtCStatus = new JTextField();
+    private JLabel txtName = new JLabel("Juan Dela Cruz");
+    private JLabel txtCStatus = new JLabel("Owner");
+    private JLabel txtTower = new JLabel("4");
+    private JLabel txtUnit = new JLabel("2020");
+    private JTextArea txtInfo = new JTextArea("Inform tenant to approach admin office immediately!");
 
-    // RIGHT PANE DYNAMIC LABELS
-    private JLabel lblClock = new JLabel("n:a");
 
-    // FOOTER PANE
-    private JPanel footerPane = new JPanel(new MigLayout("", "[grow]", "[grow]"));
-    private JLabel lblStatus = new JLabel("<html><span style='font-size:50px; color:gray;'>INITIALIZING...</span></html>");
-    private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
+    // FOOTER PANE DYNAMIC LABELS
+    private JLabel lblStatus = new JLabel("TAP YOUR CARD", null, JLabel.CENTER);
 
     public Main(){
         super("AWB");
 
-        leftPane.add(lblMezzaIcon, "wrap, top, left");
-        leftPane.add(lblAvatarIcon, "wrap, top, center");
+        lblAvatarIcon.setBorder(LineBorder.createGrayLineBorder());
+        lblClock.setFont(new Font("Arial", Font.PLAIN, 45));
+        lblClock.setForeground(Color.decode("#f2f2f2"));
 
-        // Right components styles
-        txtId.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtId.setBorder(LineBorder.createBlackLineBorder());
-        txtId.setEditable(false);
-        txtName.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtName.setBorder(LineBorder.createBlackLineBorder());
-        txtName.setEditable(false);
-        txtTower.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtTower.setBorder(LineBorder.createBlackLineBorder());
-        txtTower.setEditable(false);
-        txtUnit.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtUnit.setBorder(LineBorder.createBlackLineBorder());
-        txtUnit.setEditable(false);
-        txtCStatus.setFont(new Font("Arial", Font.PLAIN, 42));
-        txtCStatus.setBorder(LineBorder.createBlackLineBorder());
-        txtCStatus.setEditable(false);
+        _lblId.setForeground(Color.decode("#666666"));
+        _lblId.setFont(new Font("Arial", Font.BOLD, 45));
+        txtId.setFont(new Font("Arial", Font.BOLD, 45));
+        txtId.setForeground(Color.decode("#666666"));
+        lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
+        lblPoweredBy.setForeground(Color.decode("#666666"));
 
-        lblClock.setFont(new Font("Arial", Font.PLAIN, 22));
-        rightPane.add(lblClock, "wrap, skip 1, right, gapright 3%");
-        rightPane.add(_lblId, "wrap");
-        rightPane.add(txtId, "wrap, gapbottom 5%, w 250");
-        rightPane.add(_lblName, "wrap");
-        rightPane.add(txtName, "span, wrap, gapbottom 5%, growx");
-        rightPane.add(_lblTower);
-        rightPane.add(_lblUnit, "wrap");
-        rightPane.add(txtTower, "gapbottom 5%, top, growx");
-        rightPane.add(txtUnit, "gapbottom 5%, wrap, top, w 250");
-        rightPane.add(_lblCStatus, "wrap");
-        rightPane.add(txtCStatus, "w 250");
+        txtName.setForeground(Color.decode("#414141"));
+        txtName.setFont(new Font("Arial", Font.BOLD, 70));
+        txtCStatus.setFont(new Font("Arial", Font.PLAIN, 45));
+        txtCStatus.setForeground(Color.decode("#666666"));
+        _lblTower.setForeground(Color.decode("#666666"));
+        _lblTower.setFont(new Font("Arial", Font.PLAIN, 45));
+        _lblUnit.setForeground(Color.decode("#666666"));
+        _lblUnit.setFont(new Font("Arial", Font.PLAIN, 45));
+        txtTower.setForeground(Color.decode("#434343"));
+        txtTower.setFont(new Font("Arial", Font.BOLD, 45));
+        txtUnit.setForeground(Color.decode("#434343"));
+        txtUnit.setFont(new Font("Arial", Font.BOLD, 45));
+        txtInfo.setOpaque(false);
+        txtInfo.setForeground(Color.decode("#ff0000"));
+        txtInfo.setFont(new Font("Arial", Font.PLAIN, 30));
+        txtInfo.setBorder(BorderFactory.createEmptyBorder());
+        txtInfo.setLineWrap(true);
+        txtInfo.setWrapStyleWord(true);
+        txtInfo.setEditable(false);
+        infoPane.setOpaque(false);
+        infoPane.setBorder(BorderFactory.createLineBorder(Color.decode("#ff0000"), 2));
 
-        footerPane.setBackground(Color.white);
-        footerPane.add(lblStatus, "gapleft 1%");
-        footerPane.add(lblAwbIcon, "right");
+        headerPane.setBackground(Color.decode("#1c4587"));
+        headerPane.add(lblMezzaIcon, "w 50%");
+        headerPane.add(lblClock, "w 50%, gapright 2%");
 
-        mainPane.add(leftPane, "grow, w 40%");
-        mainPane.add(rightPane, "grow, w 60%, wrap");
-        mainPane.add(footerPane, "grow, span");
+        leftPane.add(lblAvatarIcon, "center, wrap, bottom, gaptop 5%");
+        leftPane.add(_lblId, "center, span, split, top");
+        leftPane.add(txtId, "wrap, top");
+        leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
+        leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
+
+        rightPane.add(txtName, "center, gaptop 5%, span, bottom, wrap");
+        rightPane.add(new JSeparator(), "center, top, w 80%, span 2 1, split, flowy");
+        rightPane.add(txtCStatus, "center, wrap");
+        rightPane.add(_lblTower, "center, bottom");
+        rightPane.add(_lblUnit, "center, bottom, wrap");
+        rightPane.add(txtTower, "center, top");
+        rightPane.add(txtUnit, "center, top, wrap");
+        rightPane.add(Box.createHorizontalBox(), "grow, span, wrap");
+        rightPane.add(Box.createHorizontalBox(), "grow, span, wrap");
+        rightPane.add(Box.createHorizontalBox(), "grow, span, wrap");
+        infoPane.add(txtInfo, "grow");
+        rightPane.add(infoPane, "growy, center, bottom, gapbottom 2%, span, w 80%");
+
+        mainPane.setBackground(Color.decode("#efefef"));
+        mainPane.add(headerPane, "span, grow, dock north");
+        mainPane.add(leftPane, "grow, w 50%, h 100%");
+        mainPane.add(rightPane, "grow, w 50%, wrap");
+
         add(mainPane);
 
-//        getRootPane().setBorder(BorderFactory.createMatteBorder(4, 4, 4, 4, new Color(0, 95, 245)));
         setUndecorated(true);
         setExtendedState(MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
@@ -319,7 +341,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
         clockFx.start();
 
-        cardWorker.execute();
+//        cardWorker.execute();
 
         txtId.addKeyListener(this);
         txtName.addKeyListener(this);
