@@ -233,7 +233,9 @@ public class EditEntry extends JFrame implements ActionListener {
 
     private void search(){
         if(txtId.getText().length() <= 0){
-            lblStatus.setText("<html><span style='font-size:50px; color:red;'>INCOMPLETE DETAILS</span></html>");
+            lblStatus.setForeground(Color.red);
+            lblStatus.setText("INCOMPLETE DETAILS");
+            clear();
         }else{
             try{
 
@@ -241,37 +243,44 @@ public class EditEntry extends JFrame implements ActionListener {
                 Connection conn = awb_connection.connect();
 
                 // UID is fetched, query against database
-                List<String> member = awb_connection.member(Integer.parseInt(txtId.getText()));
+                List<String> member = awb_connection.mezzaMember(Integer.parseInt(txtId.getText()));
 
                 if(member.size() <= 0){
-                    lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DATA FOUND</span></html>");
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.setText("NO DATA FOUND");
 
                     conn.close();
+
+                    clear();
 
                     ct.waitForCardAbsent(0);
 
                     return;
                 }else{
-                    txtId.setText(member.get(0));
+                    txtId.setText(String.format("%04d", Integer.parseInt(member.get(0))));
                     txtName.setText(member.get(1));
                     txtTower.setText(member.get(2));
                     txtUnit.setText(member.get(3));
                     txtCStatus.setText(member.get(4));
+                    txtInfo.setText(member.get(5));
                 }
 
                 conn.close();
 
                 ct.waitForCardAbsent(0);
 
-                // Transaction OK, enable delete button
+                // Transaction OK, enable buttons
                 btnDelete.setEnabled(true);
+                btnSave.setEnabled(true);
 
                 // Ready for next transaction
-                lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                lblStatus.setForeground(Color.decode("#666666"));
+                lblStatus.setText("TAP YOUR CARD");
 
             }catch (CommunicationsException ce){
                 System.out.println("Communications exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK CONNECTION");
                 clear();
             }catch (MySQLNonTransientException e){
                 System.out.println("MySQL Non-transient connection exception caught");
@@ -279,30 +288,34 @@ public class EditEntry extends JFrame implements ActionListener {
                 clear();
             }catch (ClassNotFoundException cnfe){
                 System.out.println("No driver found");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.");
                 clear();
             }catch (SQLException sqle){
                 sqle.printStackTrace();
                 System.out.println("SQL exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>SQL ERROR</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("SQL ERROR");
                 clear();
             }catch (CardException ce){
                 ce.printStackTrace();
                 clear();
             }catch (NumberFormatException nfe){
                 nfe.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>NOT A VALID ID</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("NOT A VALID ID");
                 clear();
             }
         }
     }
 
     private void clear(){
-        txtId.setText("00000000");
-        txtName.setText("n/a");
-        txtTower.setText("n/a");
-        txtUnit.setText("n/a");
-        txtCStatus.setText("n/a");
+        txtId.setText("0000");
+        txtName.setText("-");
+        txtTower.setText("-");
+        txtUnit.setText("-");
+        txtCStatus.setText("-");
+        txtInfo.setText("");
 
         btnDelete.setEnabled(false);
     }
@@ -391,7 +404,7 @@ public class EditEntry extends JFrame implements ActionListener {
     private JTextField txtId = new JTextField("0001");
     private JLabel lblPoweredBy = new JLabel("powered by ");
     private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
-    private JLabel lblTapYourCard = new JLabel("TAP YOUR CARD");
+    private JLabel lblStatus = new JLabel("TAP YOUR CARD");
 
     // RIGHT PANE LABELS
     private JLabel _lblMaxLength = new JLabel("Max length: ");
@@ -402,11 +415,11 @@ public class EditEntry extends JFrame implements ActionListener {
     // RIGHT PANE DYNAMIC TEXT
     private static final int MAX_NAME_LENGHT = 20;
     private JLabel lblMaxLength = new JLabel("0/20");
-    private JTextField txtName = new JTextField("");
+    private JTextField txtName = new JTextField("-");
     private JTextField txtCStatus = new JTextField("Owner");
-    private JTextField txtTower = new JTextField("1");
-    private JTextField txtUnit = new JTextField("1000");
-    private JTextArea txtInfo = new JTextArea("Write something here...");
+    private JTextField txtTower = new JTextField("-");
+    private JTextField txtUnit = new JTextField("-");
+    private JTextArea txtInfo = new JTextArea("No info");
 
     private ImageIcon checkIcon = new ImageIcon(Main.class.getResource("/res/check.png"));
     private ImageIcon closeIcon = new ImageIcon(Main.class.getResource("/res/close.png"));
@@ -416,7 +429,6 @@ public class EditEntry extends JFrame implements ActionListener {
     private JButton btnClose = new JButton("", closeIcon);
     private JButton btnDelete = new JButton("", deleteIcon);
 
-    private JLabel lblStatus = new JLabel("TAP YOUR CARD", null, JLabel.CENTER);
 
     public EditEntry(){
         super("AWB - Edit Entry");
@@ -432,8 +444,8 @@ public class EditEntry extends JFrame implements ActionListener {
         txtId.setBackground(Color.decode("#f7f5f5"));
         txtId.setHorizontalAlignment(JTextField.CENTER);
         txtId.setEditable(true);
-        lblTapYourCard.setFont(new Font("Arial", Font.BOLD, 40));
-        lblTapYourCard.setForeground(Color.decode("#666666"));
+        lblStatus.setFont(new Font("Arial", Font.BOLD, 40));
+        lblStatus.setForeground(Color.decode("#666666"));
         lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
         lblPoweredBy.setForeground(Color.decode("#666666"));
 
@@ -478,7 +490,7 @@ public class EditEntry extends JFrame implements ActionListener {
         leftPane.add(lblAvatarIcon, "center, wrap, bottom, gaptop 5%");
         leftPane.add(_lblId, "center, span, split, top");
         leftPane.add(txtId, "wrap, w 20%, top");
-        leftPane.add(lblTapYourCard, "span, center, wrap");
+        leftPane.add(lblStatus, "span, center, wrap");
         leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
         leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
 
@@ -516,10 +528,11 @@ public class EditEntry extends JFrame implements ActionListener {
         // Press enter on the status field
         txtCStatus.addActionListener(this);
 
-        // Disable delete button by default
+        // Disable delete and update button by default
         btnDelete.setEnabled(false);
+        btnSave.setEnabled(false);
 
-        cardWorker.execute();
+//        cardWorker.execute();
 
     }
 

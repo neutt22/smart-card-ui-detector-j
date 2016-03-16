@@ -154,6 +154,30 @@ public class AWBConnection {
         return members;
     }
 
+    public List<String> mezzaMember(int uid) throws SQLException, ClassNotFoundException{
+        List<String> members = new ArrayList<String>();
+
+        String sql;
+        sql = "select * from db_awb.members where mezza_id=?";
+
+        preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setInt(1, uid);
+        resultSet = preparedStatement.executeQuery();
+
+        while(resultSet.next()){
+            members.add(resultSet.getString("mezza_id"));
+            members.add(resultSet.getString("name"));
+            members.add(resultSet.getString("tower"));
+            members.add(resultSet.getString("unit"));
+            members.add(resultSet.getString("status"));
+            members.add(resultSet.getString("mezza_info"));
+        }
+
+        preparedStatement.close();
+
+        return members;
+    }
+
     public boolean log(int uid) throws SQLException, ClassNotFoundException{
 
         String sql = "insert into db_awb.logs (uid, log_date) values(?,now())";
