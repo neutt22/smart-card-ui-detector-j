@@ -1,15 +1,9 @@
 package com.awb.ovejera.jim;
 
-import sun.jdbc.odbc.JdbcOdbcPlatform;
-
-import javax.naming.CommunicationException;
 import javax.swing.*;
-import java.io.IOException;
-import java.rmi.server.ExportException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class AWBConnection {
@@ -35,9 +29,9 @@ public class AWBConnection {
         return connection;
     }
 
-    public boolean create(int uid, String name, String tower, String unit, String cStatus){
+    public boolean create(int uid, int mezzaId, String name, String tower, String unit, String cStatus, String info){
 
-        String sql = "insert into db_awb.members (uid, name, tower, unit, status) values(?,?,?,?,?)";
+        String sql = "insert into db_awb.members (uid, mezza_id, name, tower, unit, status, mezza_info) values(?,?,?,?,?,?,?)";
 
         if(exists(uid)){
             JOptionPane.showMessageDialog(null, "This card already has an entry. Please use different card.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -47,10 +41,12 @@ public class AWBConnection {
         try{
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, uid);
-            preparedStatement.setString(2, name);
-            preparedStatement.setString(3, tower);
-            preparedStatement.setString(4, unit);
-            preparedStatement.setString(5, cStatus);
+            preparedStatement.setInt(2, mezzaId);
+            preparedStatement.setString(3, name);
+            preparedStatement.setString(4, tower);
+            preparedStatement.setString(5, unit);
+            preparedStatement.setString(6, cStatus);
+            preparedStatement.setString(7, info);
 
             preparedStatement.executeUpdate();
 
@@ -151,18 +147,17 @@ public class AWBConnection {
         }
 
         preparedStatement.close();
-
         return members;
     }
 
-    public List<String> mezzaMember(int uid) throws SQLException, ClassNotFoundException{
+    public List<String> mezzaMember(int mezza_id) throws SQLException, ClassNotFoundException{
         List<String> members = new ArrayList<String>();
 
         String sql;
         sql = "select * from db_awb.members where mezza_id=?";
 
         preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, uid);
+        preparedStatement.setInt(1, mezza_id);
         resultSet = preparedStatement.executeQuery();
 
         while(resultSet.next()){

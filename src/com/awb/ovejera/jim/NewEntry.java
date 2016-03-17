@@ -127,7 +127,7 @@ public class NewEntry extends JFrame implements ActionListener {
                 String unit = txtUnit.getText();
                 String cStatus = txtCStatus.getText();
 
-                boolean create = awb_connection.create(uid, name, tower, unit, cStatus);
+                boolean create = awb_connection.create(uid, 0, name, tower, unit, cStatus, txtInfo.getText());
 
                 if(create) lblStatus.setText("<html><span style='font-size:50px; color:green;'>NEW RECORD ADDED</span></html>");
 
