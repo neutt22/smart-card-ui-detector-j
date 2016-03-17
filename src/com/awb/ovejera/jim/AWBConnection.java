@@ -117,7 +117,7 @@ public class AWBConnection {
         return false;
     }
 
-    private boolean exists(int uid){
+    public boolean exists(int uid){
 
         String sql = "select uid from db_awb.members where uid=?";
 

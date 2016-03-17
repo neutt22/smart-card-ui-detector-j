@@ -9,13 +9,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.util.List;
+import java.util.logging.Level;
+
 import static com.awb.ovejera.jim.Main.LOGGER;
 
 public class NewEntry extends JFrame implements ActionListener {
 
     private int uid;
 
-    private SwingWorker rowCounterWorker = new SwingWorker<Void, Integer>() {
+    private class RowCounterWorker extends SwingWorker<Void, Integer>{
         @Override
         protected Void doInBackground() throws Exception {
 
@@ -38,13 +40,16 @@ public class NewEntry extends JFrame implements ActionListener {
             txtId.setText(String.format("%04d", chunks.get(0)));
 
             LOGGER.fine("Latest Mezza ID: #" + String.format("%04d", chunks.get(0)));
+
+            LOGGER.fine("Enabling save button...");
+            btnSave.setEnabled(true);
         }
-    };
+    }
 
     private SwingWorker cardWorker = new SwingWorker<Void, String>() {
 
-
-        Connection conn = null;
+        private AWBConnection awb_connection = new AWBConnection();
+        private Connection conn = null;
 
         @Override
         protected Void doInBackground() throws Exception {
@@ -57,25 +62,31 @@ public class NewEntry extends JFrame implements ActionListener {
 
                 while(true) {
 
+                    conn = awb_connection.connect();
+
                     // APPLICATION READY
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("TAP YOUR CARD");
 
 
                     // Wait for card
                     ct.waitForCardPresent(0);
 
                     // Notify user to wait for DB transaction
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE WAIT...</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("PLEASE WAIT...");
+
+                    LOGGER.fine("Reading a card...");
 
                     // Initiate request transaction
                     readCard();
 
-//                    conn.close();
+                    conn.close();
                 }
             }catch (CardException ce){
-                ce.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
-                lblStatus.setVisible(true);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
+                LOGGER.log(Level.SEVERE, "Please check terminal then restart", ce);
             }finally {
                 conn.close();
             }
@@ -83,27 +94,17 @@ public class NewEntry extends JFrame implements ActionListener {
             return null;
         }
 
-        @Override
-        protected void process(List<String> chunks){
-            lblStatus.setVisible(true);
-            lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE RELEASE THE CARD</span></html>");
-
-            // Display UID
-            txtId.setText(chunks.get(0));
-        }
-
         public void readCard(){
             try{
                 if(ct != null){
                     c = ct.connect("*");
                 }else{
-                    System.out.println("No smart card terminal.");
+                    LOGGER.log(Level.SEVERE, "No smart card terminal");
                 }
 
                 cc = c.getBasicChannel();
 
                 ResponseAPDU answer = cc.transmit(commandApdu);
-                System.out.println(answer.toString());
                 byte[] reponseBytesArr = answer.getBytes();
                 StringBuilder sb = new StringBuilder();
                 for(int i = 0; i < reponseBytesArr.length; i++){
@@ -116,20 +117,39 @@ public class NewEntry extends JFrame implements ActionListener {
                         sb.append((int)b & 0xFF);
                     }
                 }
-                System.out.println("UID: " + sb.toString());
 
-                publish(sb.toString());
+                LOGGER.fine("UID: " + sb.toString());
 
                 uid = Integer.parseInt(sb.toString());
+
+                // Check if UID already exists
+                boolean uidExists = awb_connection.exists(uid);
+
+                if(uidExists){
+                    LOGGER.fine("UID already exists, do not create a new member");
+
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.setText("ID ALREADY DEFINED");
+                }else{
+                    LOGGER.fine("New UID detected, create a member");
+
+                    LOGGER.fine("Get a new Mezza ID");
+                    new RowCounterWorker().execute();
+
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("RELEASE THE CARD");
+                }
 
                 ct.waitForCardAbsent(0);
 
                 // Ready for next transaction
-                lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                lblStatus.setForeground(Color.decode("#666666"));
+                lblStatus.setText("TAP YOUR CARD");
 
             }catch (CardException ce){
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
-                ce.printStackTrace();
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
+                LOGGER.log(Level.SEVERE, "Please check terminal then restart", ce);
             }
         }
     };
@@ -137,13 +157,11 @@ public class NewEntry extends JFrame implements ActionListener {
     // Save the record
     private void save(){
         if(
-                txtId.getText().length() <= 0 ||
-                        txtName.getText().length() <= 0 ||
-                        txtTower.getText().length() <= 0 ||
-                        txtUnit.getText().length() <= 0 ||
-                        txtCStatus.getText().length() <= 0
-                ){
-            lblStatus.setText("<html><span style='font-size:50px; color:red;'>INCOMPLETE DETAILS</span></html>");
+            txtName.getText().length() <= 0 || txtTower.getText().length() <= 0 ||
+            txtUnit.getText().length() <= 0 || txtCStatus.getText().length() <= 0
+        ){
+            lblStatus.setForeground(Color.red);
+            lblStatus.setText("INCOMPLETE DETAILS");
         }else{
             try{
                 AWBConnection awb_connection = new AWBConnection();
@@ -154,15 +172,39 @@ public class NewEntry extends JFrame implements ActionListener {
                 String unit = txtUnit.getText();
                 String cStatus = txtCStatus.getText();
 
-                boolean create = awb_connection.create(uid, 0, name, tower, unit, cStatus, txtInfo.getText());
+                LOGGER.info("Creating new member...");
 
-                if(create) lblStatus.setText("<html><span style='font-size:50px; color:green;'>NEW RECORD ADDED</span></html>");
+                boolean create = awb_connection.create(uid, Integer.parseInt(txtId.getText()), name, tower, unit, cStatus, txtInfo.getText());
+
+                if(create){
+                    LOGGER.info("Creating new member success!");
+
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("NEW RECORD ADDED");
+
+                    // Clear the fields
+                    LOGGER.info("Clearing fields for new registration...");
+                    txtId.setText("0000");
+                    txtName.setText("-");
+                    txtTower.setText("-");
+                    txtUnit.setText("-");
+                    txtCStatus.setText("-");
+                    txtInfo.setText("");
+
+                    btnSave.setEnabled(false);
+                }else{
+                    LOGGER.severe("Failed in creating new member");
+
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.setText("FAILED TO REGISTER");
+                }
 
                 conn.close();
 
             }catch (Exception e){
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>NEW RECORD FAILED</span></html>");
-                e.printStackTrace();
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("NEW RECORD FAILED");
+                LOGGER.log(Level.SEVERE, "Error creating new member", e);
             }
         }
     }
@@ -258,10 +300,10 @@ public class NewEntry extends JFrame implements ActionListener {
     // LEFT PANE LABEL
     private JLabel lblAvatarIcon = new JLabel("", avatarIcon, JLabel.CENTER);
     private JLabel _lblId = new JLabel("#");
-    private JTextField txtId = new JTextField("0001");
+    private JTextField txtId = new JTextField("0000");
+    private JLabel lblStatus = new JLabel("TAP YOUR CARD", null, JLabel.CENTER);
     private JLabel lblPoweredBy = new JLabel("powered by ");
     private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
-    private JLabel lblTapYourCard = new JLabel("TAP YOUR CARD");
 
     // RIGHT PANE LABELS
     private JLabel _lblMaxLength = new JLabel("Max length: ");
@@ -277,10 +319,6 @@ public class NewEntry extends JFrame implements ActionListener {
     private JTextField txtTower = new JTextField("1");
     private JTextField txtUnit = new JTextField("1000");
     private JTextArea txtInfo = new JTextArea("Write something here...");
-
-
-    // FOOTER PANE DYNAMIC LABELS
-    private JLabel lblStatus = new JLabel("TAP YOUR CARD", null, JLabel.CENTER);
 
     private ImageIcon checkIcon = new ImageIcon(Main.class.getResource("/res/check.png"));
     private ImageIcon closeIcon = new ImageIcon(Main.class.getResource("/res/close.png"));
@@ -304,8 +342,8 @@ public class NewEntry extends JFrame implements ActionListener {
         txtId.setBackground(Color.decode("#f7f5f5"));
         txtId.setHorizontalAlignment(JTextField.CENTER);
         txtId.setEditable(false);
-        lblTapYourCard.setFont(new Font("Arial", Font.BOLD, 40));
-        lblTapYourCard.setForeground(Color.decode("#666666"));
+        lblStatus.setFont(new Font("Arial", Font.BOLD, 40));
+        lblStatus.setForeground(Color.decode("#666666"));
         lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
         lblPoweredBy.setForeground(Color.decode("#666666"));
 
@@ -350,7 +388,7 @@ public class NewEntry extends JFrame implements ActionListener {
         leftPane.add(lblAvatarIcon, "center, wrap, bottom, gaptop 5%");
         leftPane.add(_lblId, "center, span, split, top");
         leftPane.add(txtId, "wrap, w 20%, top");
-        leftPane.add(lblTapYourCard, "span, center, wrap");
+        leftPane.add(lblStatus, "span, center, wrap");
         leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
         leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
 
@@ -384,13 +422,14 @@ public class NewEntry extends JFrame implements ActionListener {
 
         LOGGER.fine("Registration UI constructed");
 
-        // Press enter on the status field
-//        txtCStatus;
+        btnSave.setActionCommand("save");
+        btnSave.addActionListener(this);
+        btnClose.setActionCommand("close");
+        btnClose.addActionListener(this);
 
         cardWorker.execute();
 
-        // Get a new Mezza ID
-        rowCounterWorker.execute();
+        btnSave.setEnabled(false);
 
     }
 

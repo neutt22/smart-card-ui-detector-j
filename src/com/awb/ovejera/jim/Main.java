@@ -24,7 +24,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
     private SwingWorker cardWorker = new SwingWorker<Void, String>() {
 
         private AWBConnection awb_connection = new AWBConnection();
-        Connection conn = null;
+        private Connection conn = null;
 
         @Override
         protected Void doInBackground() throws Exception {
