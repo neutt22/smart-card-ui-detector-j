@@ -77,11 +77,13 @@ public class Main extends JFrame implements ActionListener, KeyListener {
             lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE RELEASE THE CARD</span></html>");
             statusFx.stop();
 
-            txtId.setText(chunks.get(0));
+            txtId.setText(String.format("%04d", Integer.parseInt(chunks.get(0))));
             txtName.setText(chunks.get(1));
             txtTower.setText(chunks.get(2));
             txtUnit.setText(chunks.get(3));
             txtCStatus.setText(chunks.get(4));
+
+            idleWindow.setVisible(false);
         }
 
         private void readCard(){
@@ -180,10 +182,13 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
     // TODO: Set to 60000 in production mode
     // SCREEN INFO REMOVER
-    private Timer infoRemover = new Timer(1000, new ActionListener() {
+    private Timer infoRemover = new Timer(2000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            txtId.setText("00000000");
+
+            idleWindow.setVisible(true);
+
+            txtId.setText("0000");
             txtName.setText("n/a");
             txtTower.setText("n/a");
             txtUnit.setText("n/a");
@@ -204,6 +209,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
     private CardTerminal ct;
     private Card c;
     private CardChannel cc;
+
+    private IdleWindow idleWindow = new IdleWindow();
 
     private JPanel mainPane = new JPanel(new MigLayout("insets 0 0 0 0", "[grow]", "[grow]")){
         @Override
@@ -246,7 +253,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
     // LEFT PANE LABEL
     private JLabel lblAvatarIcon = new JLabel("", avatarIcon, JLabel.CENTER);
     private JLabel _lblId = new JLabel("#");
-    private JLabel txtId = new JLabel("0001");
+    private JLabel txtId = new JLabel("0000");
     private JLabel lblPoweredBy = new JLabel("powered by ");
     private JLabel lblAwbIcon = new JLabel("", awbIcon, JLabel.CENTER);
 
@@ -259,8 +266,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
     // RIGHT PANE DYNAMIC TEXT
     private JLabel txtName = new JLabel("Juan Dela Cruz");
     private JLabel txtCStatus = new JLabel("Owner");
-    private JLabel txtTower = new JLabel("4");
-    private JLabel txtUnit = new JLabel("2020");
+    private JLabel txtTower = new JLabel("1");
+    private JLabel txtUnit = new JLabel("1000");
     private JTextArea txtInfo = new JTextArea("Inform tenant to approach admin office immediately!");
 
 
@@ -341,7 +348,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
         clockFx.start();
 
-//        cardWorker.execute();
+        cardWorker.execute();
 
         txtId.addKeyListener(this);
         txtName.addKeyListener(this);
@@ -351,7 +358,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         addKeyListener(this);
         setFocusable(true);
 
-        new IdleWindow().setVisible(true);
+        idleWindow.setVisible(true);
 
     }
 

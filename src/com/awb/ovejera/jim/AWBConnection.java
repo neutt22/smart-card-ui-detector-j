@@ -142,11 +142,12 @@ public class AWBConnection {
         resultSet = preparedStatement.executeQuery();
 
         while(resultSet.next()){
-            members.add(resultSet.getString("uid"));
+            members.add(resultSet.getString("mezza_id"));
             members.add(resultSet.getString("name"));
             members.add(resultSet.getString("tower"));
             members.add(resultSet.getString("unit"));
             members.add(resultSet.getString("status"));
+            members.add(resultSet.getString("mezza_info"));
         }
 
         preparedStatement.close();

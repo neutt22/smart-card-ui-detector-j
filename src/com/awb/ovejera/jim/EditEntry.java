@@ -301,7 +301,7 @@ public class EditEntry extends JFrame implements ActionListener {
                 ce.printStackTrace();
                 clear();
             }catch (NumberFormatException nfe){
-                nfe.printStackTrace();
+//                nfe.printStackTrace();
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("NOT A VALID ID");
                 clear();
