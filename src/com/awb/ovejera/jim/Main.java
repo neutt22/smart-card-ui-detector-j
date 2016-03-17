@@ -40,12 +40,17 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     conn = awb_connection.connect();
 
                     // APPLICATION READY
-                    lblStatus.setText("TAP YOUR CARD");
+//                    lblStatus.setForeground(Color.decode("#666666"));
+//                    lblStatus.setText("TAP YOUR CARD");
 
                     // Wait for card
                     ct.waitForCardPresent(0);
 
+                    // Stop info remover, idle window from popping
+                    infoRemover.stop();
+
                     // Notify user to wait for DB transaction
+                    lblStatus.setForeground(Color.decode("#666666"));
                     lblStatus.setText("PLEASE WAIT...");
 
                     // Initiate request transaction
@@ -55,12 +60,12 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                 }
             }catch (CardException ce){
                 ce.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
-                lblStatus.setVisible(true);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
             }catch (CommunicationsException ce){
                 ce.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION THEN RESTART</span></html>");
-                lblStatus.setVisible(true);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK CONNECTION THEN RESTART");
             }finally {
                 conn.close();
             }
@@ -70,14 +75,15 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
         @Override
         protected void process(List<String> chunks){
-            lblStatus.setVisible(true);
-            lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE RELEASE THE CARD</span></html>");
+            lblStatus.setForeground(Color.decode("#666666"));
+            lblStatus.setText("PLEASE RELEASE THE CARD");
 
             txtId.setText(String.format("%04d", Integer.parseInt(chunks.get(0))));
             txtName.setText(chunks.get(1));
             txtTower.setText(chunks.get(2));
             txtUnit.setText(chunks.get(3));
             txtCStatus.setText(chunks.get(4));
+            txtInfo.setText(chunks.get(5));
 
             idleWindow.setVisible(false);
         }
@@ -95,11 +101,11 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
                 ResponseAPDU answer = cc.transmit(commandApdu);
                 System.out.println(answer.toString());
-                byte[] reponseBytesArr=answer.getBytes();
+                byte[] reponseBytesArr = answer.getBytes();
                 StringBuilder sb = new StringBuilder();
-                for(int i=0;i<reponseBytesArr.length;i++){
+                for(int i = 0; i < reponseBytesArr.length; i++){
 
-                    byte b =reponseBytesArr[i];
+                    byte b = reponseBytesArr[i];
 
                     if(i <= reponseBytesArr.length - 3){
 
@@ -115,11 +121,13 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 //                List<String> member = awb_connection.member(Integer.parseInt("9988"));
 
                 if(member.size() <= 0){
-                    lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DATA FOUND</span></html>");
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.setText("NO DATA FOUND");
                     ct.waitForCardAbsent(0);
 
                     // Application is ready
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("TAP YOUR CARD");
                     return;
                 }else{
                     publish(member.get(0));
@@ -127,31 +135,38 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     publish(member.get(2));
                     publish(member.get(3));
                     publish(member.get(4));
+                    publish(member.get(5));
                 }
 
                 ct.waitForCardAbsent(0);
 
                 // Ready for next transaction
-                lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                lblStatus.setForeground(Color.decode("#666666"));
+                lblStatus.setText("TAP YOUR CARD");
 
                 // Initiate info remover
                 infoRemover.start();
+
             }catch (CommunicationsException ce){
                 System.out.println("Communications exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK CONNECTION");
             }catch (MySQLNonTransientException e){
                 System.out.println("MySQL Non-transient connection exception caught");
 //                e.printStackTrace();
             }catch (CardException ce){
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
                 ce.printStackTrace();
             }catch (ClassNotFoundException cnfe){
                 System.out.println("No driver found");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.");
             }catch (SQLException sqle){
                 sqle.printStackTrace();
                 System.out.println("SQL exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>SQL ERROR</span></html>");
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("SQL ERROR");
             }
         }
     };
@@ -167,10 +182,11 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
     // TODO: Set to 60000 in production mode
     // SCREEN INFO REMOVER
-    private Timer infoRemover = new Timer(2000, new ActionListener() {
+    private Timer infoRemover = new Timer(5000, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
 
+            // Show the idle window
             idleWindow.setVisible(true);
 
             txtId.setText("0000");
@@ -178,6 +194,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
             txtTower.setText("n/a");
             txtUnit.setText("n/a");
             txtCStatus.setText("n/a");
+            txtInfo.setText("");
 
             // Stop removing
             infoRemover.stop();
@@ -270,6 +287,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         _lblId.setFont(new Font("Arial", Font.BOLD, 45));
         txtId.setFont(new Font("Arial", Font.BOLD, 45));
         txtId.setForeground(Color.decode("#666666"));
+        lblStatus.setFont(new Font("Arial", Font.BOLD, 30));
+        lblStatus.setForeground(Color.decode("#666666"));
         lblPoweredBy.setFont(new Font("Arial", Font.PLAIN, 20));
         lblPoweredBy.setForeground(Color.decode("#666666"));
 
@@ -302,6 +321,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         leftPane.add(lblAvatarIcon, "center, wrap, bottom, gaptop 5%");
         leftPane.add(_lblId, "center, span, split, top");
         leftPane.add(txtId, "wrap, top");
+        leftPane.add(lblStatus, "span, center, wrap");
         leftPane.add(lblPoweredBy, "span, split, center, gaptop 3%");
         leftPane.add(lblAwbIcon, "bottom, gapbottom 2%");
 
