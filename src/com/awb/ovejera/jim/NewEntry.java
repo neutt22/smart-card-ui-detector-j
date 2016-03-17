@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.util.List;
+import static com.awb.ovejera.jim.Main.LOGGER;
 
 public class NewEntry extends JFrame implements ActionListener {
 
@@ -25,12 +26,18 @@ public class NewEntry extends JFrame implements ActionListener {
 
             publish(rowCount + 1);
 
+            connection.close();
+
+            LOGGER.fine("Row count finished: " + rowCount);
+
             return null;
         }
 
         @Override
         protected void process(List<Integer> chunks){
             txtId.setText(String.format("%04d", chunks.get(0)));
+
+            LOGGER.fine("Latest Mezza ID: #" + String.format("%04d", chunks.get(0)));
         }
     };
 
@@ -375,10 +382,12 @@ public class NewEntry extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
+        LOGGER.fine("Registration UI constructed");
+
         // Press enter on the status field
 //        txtCStatus;
 
-//        cardWorker.execute();
+        cardWorker.execute();
 
         // Get a new Mezza ID
         rowCounterWorker.execute();
@@ -400,4 +409,5 @@ public class NewEntry extends JFrame implements ActionListener {
             }
         });
     }
+
 }

@@ -121,9 +121,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
                 // UID is fetched, query against database
                 List<String> member = awb_connection.member(Integer.parseInt(sb.toString()));
-                awb_connection.log(Integer.parseInt(sb.toString()));
-
-                LOGGER.fine("Tap event logged.");
 
                 if(member.size() <= 0){
                     lblStatus.setForeground(Color.red);
@@ -143,6 +140,9 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     publish(member.get(4));
                     publish(member.get(5));
 
+                    awb_connection.log(Integer.parseInt(sb.toString()));
+
+                    LOGGER.fine("Tap event logged.");
                     LOGGER.fine("Member list published");
                 }
 
@@ -400,11 +400,11 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
     }
 
-    private final static Logger LOGGER = Logger.getLogger(Main.class.getName());
+    public final static Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String args[]){
 
-        setupLogger();
+        setupLogger(LOGGER);
 
         SwingUtilities.invokeLater(new Runnable(){
             public void run(){
@@ -419,13 +419,13 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         });
     }
 
-    private static void setupLogger(){
+    private static void setupLogger(Logger logger){
 
-        LOGGER.setUseParentHandlers(false);
+        logger.setUseParentHandlers(false);
 
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.FINEST);
-        LOGGER.addHandler(handler);
-        LOGGER.setLevel(Level.FINEST);
+        logger.addHandler(handler);
+        logger.setLevel(Level.FINEST);
     }
 }
