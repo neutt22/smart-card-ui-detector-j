@@ -41,7 +41,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
                     // APPLICATION READY
                     lblStatus.setText("TAP YOUR CARD");
-                    statusFx.start();
 
                     // Wait for card
                     ct.waitForCardPresent(0);
@@ -57,12 +56,10 @@ public class Main extends JFrame implements ActionListener, KeyListener {
             }catch (CardException ce){
                 ce.printStackTrace();
                 lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
-                statusFx.stop();
                 lblStatus.setVisible(true);
             }catch (CommunicationsException ce){
                 ce.printStackTrace();
                 lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION THEN RESTART</span></html>");
-                statusFx.stop();
                 lblStatus.setVisible(true);
             }finally {
                 conn.close();
@@ -75,7 +72,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         protected void process(List<String> chunks){
             lblStatus.setVisible(true);
             lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE RELEASE THE CARD</span></html>");
-            statusFx.stop();
 
             txtId.setText(String.format("%04d", Integer.parseInt(chunks.get(0))));
             txtName.setText(chunks.get(1));
@@ -124,7 +120,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
                     // Application is ready
                     lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
-                    statusFx.start();
                     return;
                 }else{
                     publish(member.get(0));
@@ -138,7 +133,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
                 // Ready for next transaction
                 lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
-                statusFx.start();
 
                 // Initiate info remover
                 infoRemover.start();
@@ -161,15 +155,6 @@ public class Main extends JFrame implements ActionListener, KeyListener {
             }
         }
     };
-
-    // CARD STATUS FX
-    private  boolean hidden = false;
-    private Timer statusFx = new Timer(500, new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            lblStatus.setVisible(hidden = !hidden);
-        }
-    });
 
     // CLOCK FX
     private SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss a MMMM dd, YYYY");
