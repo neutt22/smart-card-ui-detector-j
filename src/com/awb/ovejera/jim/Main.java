@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.*;
 
 public class Main extends JFrame implements ActionListener, KeyListener {
 
@@ -53,19 +54,21 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     lblStatus.setForeground(Color.decode("#666666"));
                     lblStatus.setText("PLEASE WAIT...");
 
+                    LOGGER.fine("Reading a card...");
+
                     // Initiate request transaction
                     readCard();
 
 //                    conn.close();
                 }
             }catch (CardException ce){
-                ce.printStackTrace();
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
+                LOGGER.log(Level.SEVERE, "Card exception", ce);
             }catch (CommunicationsException ce){
-                ce.printStackTrace();
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("PLEASE CHECK CONNECTION THEN RESTART");
+                LOGGER.log(Level.SEVERE, "Communications exception", ce);
             }finally {
                 conn.close();
             }
@@ -93,14 +96,14 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                 if(ct != null){
                     c = ct.connect("*");
                 }else{
-                    System.out.println("No smart card terminal.");
+                    LOGGER.severe("No smart card terminal. System exiting.");
                     System.exit(0);
                 }
 
                 cc = c.getBasicChannel();
 
                 ResponseAPDU answer = cc.transmit(commandApdu);
-                System.out.println(answer.toString());
+                LOGGER.info("Response: " + answer.toString());
                 byte[] reponseBytesArr = answer.getBytes();
                 StringBuilder sb = new StringBuilder();
                 for(int i = 0; i < reponseBytesArr.length; i++){
@@ -113,16 +116,19 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                         sb.append((int)b & 0xFF);
                     }
                 }
-                System.out.println("UID: " + sb.toString());
+
+                LOGGER.fine("UID: " + sb.toString());
 
                 // UID is fetched, query against database
                 List<String> member = awb_connection.member(Integer.parseInt(sb.toString()));
                 awb_connection.log(Integer.parseInt(sb.toString()));
-//                List<String> member = awb_connection.member(Integer.parseInt("9988"));
+
+                LOGGER.fine("Tap event logged.");
 
                 if(member.size() <= 0){
                     lblStatus.setForeground(Color.red);
                     lblStatus.setText("NO DATA FOUND");
+                    LOGGER.fine("Member size = 0");
                     ct.waitForCardAbsent(0);
 
                     // Application is ready
@@ -136,6 +142,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                     publish(member.get(3));
                     publish(member.get(4));
                     publish(member.get(5));
+
+                    LOGGER.fine("Member list published");
                 }
 
                 ct.waitForCardAbsent(0);
@@ -144,27 +152,27 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                 lblStatus.setForeground(Color.decode("#666666"));
                 lblStatus.setText("TAP YOUR CARD");
 
+                LOGGER.info("Initiating info remover and idle window...");
+
                 // Initiate info remover
                 infoRemover.start();
 
             }catch (CommunicationsException ce){
-                System.out.println("Communications exception caught");
+                LOGGER.log(Level.SEVERE, "Communications exception", ce);
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("PLEASE CHECK CONNECTION");
             }catch (MySQLNonTransientException e){
-                System.out.println("MySQL Non-transient connection exception caught");
-//                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "MySQL Non-transient connection exception caught", e);
             }catch (CardException ce){
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
-                ce.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Card exception", ce);
             }catch (ClassNotFoundException cnfe){
-                System.out.println("No driver found");
+                LOGGER.log(Level.SEVERE, "Class not found exception. No driver found.", cnfe);
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.");
             }catch (SQLException sqle){
-                sqle.printStackTrace();
-                System.out.println("SQL exception caught");
+                LOGGER.log(Level.SEVERE, "Mysql exception", sqle);
                 lblStatus.setForeground(Color.red);
                 lblStatus.setText("SQL ERROR");
             }
@@ -365,6 +373,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
         idleWindow.setVisible(true);
 
+        LOGGER.fine("UI constructed");
+
     }
 
     @Override
@@ -390,7 +400,12 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
     }
 
+    private final static Logger LOGGER = Logger.getLogger(Main.class.getName());
+
     public static void main(String args[]){
+
+        setupLogger();
+
         SwingUtilities.invokeLater(new Runnable(){
             public void run(){
                 JFrame.setDefaultLookAndFeelDecorated(true);
@@ -402,5 +417,15 @@ public class Main extends JFrame implements ActionListener, KeyListener {
                 new Main();
             }
         });
+    }
+
+    private static void setupLogger(){
+
+        LOGGER.setUseParentHandlers(false);
+
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.FINEST);
+        LOGGER.addHandler(handler);
+        LOGGER.setLevel(Level.FINEST);
     }
 }
