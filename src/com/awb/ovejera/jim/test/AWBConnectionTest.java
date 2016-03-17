@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class AWBConnectionTest extends TestCase {
@@ -99,5 +100,19 @@ public class AWBConnectionTest extends TestCase {
 
         // Entry not found
         assertFalse(awbConnection.delete(99999));
+    }
+
+    @Test
+    public void testRowCount(){
+        awbConnection.create(23, 0002, "TestName", "TestTower", "TestUnit", "TestStatus", "TestSimple info");
+        awbConnection.create(3434, 0002, "TestName", "TestTower", "TestUnit", "TestStatus", "TestSimple info");
+        awbConnection.create(34332, 0002, "TestName", "TestTower", "TestUnit", "TestStatus", "TestSimple info");
+
+        assertEquals(3, awbConnection.rowCount());
+        assertNotEquals(0, awbConnection.rowCount());
+
+        awbConnection.delete(23);
+        awbConnection.delete(3434);
+        awbConnection.delete(34332);
     }
 }

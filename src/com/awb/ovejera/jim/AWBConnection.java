@@ -29,6 +29,22 @@ public class AWBConnection {
         return connection;
     }
 
+    public int rowCount(){
+        try{
+            preparedStatement = connection.prepareStatement("select count(*) from db_awb.members");
+
+            resultSet = preparedStatement.executeQuery();
+
+            while(resultSet.next()){
+                return resultSet.getInt(1);
+            }
+        }catch (SQLException sqle){
+            sqle.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public boolean create(int uid, int mezzaId, String name, String tower, String unit, String cStatus, String info){
 
         String sql = "insert into db_awb.members (uid, mezza_id, name, tower, unit, status, mezza_info) values(?,?,?,?,?,?,?)";

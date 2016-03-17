@@ -14,6 +14,26 @@ public class NewEntry extends JFrame implements ActionListener {
 
     private int uid;
 
+    private SwingWorker rowCounterWorker = new SwingWorker<Void, Integer>() {
+        @Override
+        protected Void doInBackground() throws Exception {
+
+            AWBConnection awbConnection = new AWBConnection();
+            Connection connection = awbConnection.connect();
+
+            int rowCount = awbConnection.rowCount();
+
+            publish(rowCount + 1);
+
+            return null;
+        }
+
+        @Override
+        protected void process(List<Integer> chunks){
+            txtId.setText(String.format("%04d", chunks.get(0)));
+        }
+    };
+
     private SwingWorker cardWorker = new SwingWorker<Void, String>() {
 
 
@@ -358,7 +378,10 @@ public class NewEntry extends JFrame implements ActionListener {
         // Press enter on the status field
 //        txtCStatus;
 
-        cardWorker.execute();
+//        cardWorker.execute();
+
+        // Get a new Mezza ID
+        rowCounterWorker.execute();
 
     }
 
