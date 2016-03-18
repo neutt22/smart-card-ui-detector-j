@@ -60,7 +60,7 @@ public class NewEntry extends JFrame implements ActionListener {
                 terminals = factory.terminals().list();
                 ct = terminals.get(0);
 
-                while(true) {
+                while(Main.active) {
 
                     conn = awb_connection.connect();
 
@@ -71,6 +71,8 @@ public class NewEntry extends JFrame implements ActionListener {
 
                     // Wait for card
                     ct.waitForCardPresent(0);
+
+                    if(!Main.active) break;
 
                     // Notify user to wait for DB transaction
                     lblStatus.setForeground(Color.decode("#666666"));
@@ -213,7 +215,10 @@ public class NewEntry extends JFrame implements ActionListener {
         String action = ae.getActionCommand();
 
         if(action.equals("save")) save();
-        else if(action.equals("close")) dispose();
+        else if(action.equals("close")) {
+            Main.active = false;
+            dispose();
+        }
         else save();
 
     }

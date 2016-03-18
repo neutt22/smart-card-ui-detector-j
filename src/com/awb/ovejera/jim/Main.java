@@ -195,7 +195,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         public void actionPerformed(ActionEvent e) {
 
             // Show the idle window
-            idleWindow.setVisible(true);
+            if(!active) idleWindow.setVisible(true);
 
             txtId.setText("0000");
             txtName.setText("n/a");
@@ -377,6 +377,8 @@ public class Main extends JFrame implements ActionListener, KeyListener {
 
     }
 
+    public static boolean active = false;
+
     @Override
     public void keyTyped(KeyEvent ke) {
 
@@ -387,6 +389,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         if(! ke.isControlDown()) return;
 
         if(ke.getKeyCode() == KeyEvent.VK_N){
+            active = true;
             new NewEntry().setVisible(true);
         }else if(ke.getKeyCode() == KeyEvent.VK_E){
             new EditEntry().setVisible(true); // TODO: Keep IdleWindow closed when registering members
