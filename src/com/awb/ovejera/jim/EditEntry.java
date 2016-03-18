@@ -47,14 +47,13 @@ public class EditEntry extends JFrame implements ActionListener {
                     lblStatus.setForeground(Color.decode("#666666"));
                     lblStatus.setText("TAP YOUR CARD");
 
+                    LOGGER.fine("Waiting for card present...");
+
                     // Wait for card
                     ct.waitForCardPresent(0);
 
                     // Admin has closed this window, do not continue
                     if(!Main.active) break;
-
-                    // Transaction OK, enable delete button
-                    ct.waitForCardAbsent(0);
 
                     // Notify user to wait for DB transaction
                     lblStatus.setForeground(Color.decode("#666666"));
@@ -85,19 +84,25 @@ public class EditEntry extends JFrame implements ActionListener {
             lblStatus.setForeground(Color.decode("#666666"));
             lblStatus.setText("PLEASE RELEASE THE CARD");
 
-            txtId.setText(chunks.get(0));
+            txtId.setText(String.format("%04d", Integer.parseInt(chunks.get(0))));
             txtName.setText(chunks.get(1));
             txtTower.setText(chunks.get(2));
             txtUnit.setText(chunks.get(3));
             txtCStatus.setText(chunks.get(4));
             txtInfo.setText(chunks.get(5));
 
+            // Valid search, enable buttons
+            btnSave.setEnabled(true);
+            btnDelete.setEnabled(true);
+
+            lblStatus.setForeground(Color.decode("#666666"));
+            lblStatus.setText("RECORD FOUND");
+
             LOGGER.fine("Finished.");
         }
 
         private void readCard(){
             try{
-                LOGGER.fine("going on................");
                 if(ct != null){
                     c = ct.connect("*");
                 }else{
