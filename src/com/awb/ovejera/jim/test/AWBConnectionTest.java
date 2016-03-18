@@ -46,10 +46,10 @@ public class AWBConnectionTest extends TestCase {
 
     @Test
     public void testUpdate() throws Exception {
-        assertTrue(awbConnection.update(25863221, "TestName2", "TestNameTower2", "TestUnit2", "TestStatus"));
+        assertTrue(awbConnection.update(2, "TestName2", "TestNameTower2", "TestUnit2", "TestStatus", "TestInfo"));
 
         // Entry not found
-        assertFalse(awbConnection.update(25863999, "TestName2", "TestNameTower2", "TestUnit2", "TestStatus"));
+        assertFalse(awbConnection.update(2333, "TestName2", "TestNameTower2", "TestUnit2", "TestStatus", "Test Info"));
 
         // Delete created row
         awbConnection.delete(25863221);
@@ -108,7 +108,7 @@ public class AWBConnectionTest extends TestCase {
         awbConnection.create(3434, 0002, "TestName", "TestTower", "TestUnit", "TestStatus", "TestSimple info");
         awbConnection.create(34332, 0002, "TestName", "TestTower", "TestUnit", "TestStatus", "TestSimple info");
 
-        assertEquals(3, awbConnection.rowCount());
+        assertEquals(4, awbConnection.rowCount());
         assertNotEquals(0, awbConnection.rowCount());
 
         awbConnection.delete(23);

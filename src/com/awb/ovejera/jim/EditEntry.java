@@ -7,6 +7,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.smartcardio.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
+import javax.swing.text.LabelView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +16,9 @@ import java.awt.event.KeyListener;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
+
+import static com.awb.ovejera.jim.Main.LOGGER;
 
 public class EditEntry extends JFrame implements ActionListener {
 
@@ -34,36 +38,41 @@ public class EditEntry extends JFrame implements ActionListener {
                 terminals = factory.terminals().list();
                 ct = terminals.get(0);
 
-                while(true) {
+                while(Main.active) {
 
                     // Try to connect to database
                     conn = awb_connection.connect();
 
                     // APPLICATION READY
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("TAP YOUR CARD");
 
                     // Wait for card
                     ct.waitForCardPresent(0);
+
+                    // Admin has closed this window, do not continue
+                    if(!Main.active) break;
 
                     // Transaction OK, enable delete button
                     ct.waitForCardAbsent(0);
 
                     // Notify user to wait for DB transaction
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE WAIT...</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("PLEASE WAIT...");
+
+                    LOGGER.fine("Reading a card...");
 
                     // Initiate request transaction
                     readCard();
-
-//                    conn.close();
                 }
             }catch (CardException ce){
-                ce.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
-                lblStatus.setVisible(true);
+                LOGGER.log(Level.SEVERE, "No terminal found", ce);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
             }catch (CommunicationsException ce){
-                ce.printStackTrace();
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION THEN RESTART</span></html>");
-                lblStatus.setVisible(true);
+                LOGGER.log(Level.SEVERE, "Communications Exception", ce);
+                lblStatus.setForeground(Color.red);
+                lblStatus.setText("PLEASE CHECK CONNECTION THEN RESTART");
             }finally {
                 conn.close();
             }
@@ -73,24 +82,28 @@ public class EditEntry extends JFrame implements ActionListener {
 
         @Override
         protected void process(List<String> chunks){
-            lblStatus.setVisible(true);
-            lblStatus.setText("<html><span style='font-size:50px; color:gray;'>PLEASE RELEASE THE CARD</span></html>");
+            lblStatus.setForeground(Color.decode("#666666"));
+            lblStatus.setText("PLEASE RELEASE THE CARD");
 
             txtId.setText(chunks.get(0));
             txtName.setText(chunks.get(1));
             txtTower.setText(chunks.get(2));
             txtUnit.setText(chunks.get(3));
             txtCStatus.setText(chunks.get(4));
+            txtInfo.setText(chunks.get(5));
+
+            LOGGER.fine("Finished.");
         }
 
         private void readCard(){
             try{
+                LOGGER.fine("going on................");
                 if(ct != null){
                     c = ct.connect("*");
                 }else{
-                    System.out.println("No smart card terminal.");
-                    System.exit(0);
+                    LOGGER.log(Level.SEVERE, "No terminal found!");
                 }
+
 
                 cc = c.getBasicChannel();
 
@@ -107,52 +120,59 @@ public class EditEntry extends JFrame implements ActionListener {
                         sb.append((int)b & 0xFF);
                     }
                 }
-                System.out.println("UID: " + sb.toString());
+
+                LOGGER.fine("UID: " + sb.toString());
 
                 // UID is fetched, query against database
                 List<String> member = awb_connection.member(Integer.parseInt(sb.toString()));
 
                 if(member.size() <= 0){
-                    lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DATA FOUND</span></html>");
+                    lblStatus.setForeground(Color.red);
+                    lblStatus.setText("NO DATA FOUND");
+                    clear();
                     ct.waitForCardAbsent(0);
 
                     // Application is ready
-                    lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("TAP YOUR CARD");
 
                     return;
                 }else{
+
+                    LOGGER.fine("Displaying found member...");
+
                     publish(member.get(0));
                     publish(member.get(1));
                     publish(member.get(2));
                     publish(member.get(3));
                     publish(member.get(4));
+                    publish(member.get(5));
                 }
 
                 ct.waitForCardAbsent(0);
 
                 // Ready for next transaction
-                lblStatus.setText("<html><span style='font-size:50px; color:gray;'>TAP YOUR CARD</span></html>");
+                lblStatus.setForeground(Color.decode("#666666"));
+                lblStatus.setText("TAP YOUR CARD");
 
             }catch (CommunicationsException ce){
-                System.out.println("Communications exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK CONNECTION</span></html>");
+                LOGGER.log(Level.SEVERE, "No connection", ce);
+                lblStatus.setText("PLEASE CHECK CONNECTION");
                 clear();
             }catch (MySQLNonTransientException e){
-                System.out.println("MySQL Non-transient connection exception caught");
+                LOGGER.log(Level.SEVERE, "MySQLNonTransientException", e);
                 clear();
-//                e.printStackTrace();
             }catch (CardException ce){
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>PLEASE CHECK TERMINAL THEN RESTART</span></html>");
+                LOGGER.log(Level.SEVERE, "CardException", ce);
+                lblStatus.setText("PLEASE CHECK TERMINAL THEN RESTART");
                 clear();
-                ce.printStackTrace();
             }catch (ClassNotFoundException cnfe){
-                System.out.println("No driver found");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.</span></html>");
+                LOGGER.log(Level.SEVERE, "ClassNotFoundException", cnfe);
+                lblStatus.setText("NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.");
                 clear();
             }catch (SQLException sqle){
-                sqle.printStackTrace();
-                System.out.println("SQL exception caught");
-                lblStatus.setText("<html><span style='font-size:50px; color:red;'>SQL ERROR</span></html>");
+                LOGGER.log(Level.SEVERE, "SQLException", sqle);
+                lblStatus.setText("SQL ERROR");
                 clear();
             }
         }
@@ -167,23 +187,33 @@ public class EditEntry extends JFrame implements ActionListener {
             txtUnit.getText().length() <= 0 ||
             txtCStatus.getText().length() <= 0
         ){
-            lblStatus.setText("<html><span style='font-size:50px; color:red;'>INCOMPLETE DETAILS</span></html>");
+            lblStatus.setForeground(Color.red);
+            lblStatus.setText("INCOMPLETE DETAILS");
         }else{
             try{
+
+                LOGGER.fine("Updating record...");
+
                 AWBConnection awb_connection = new AWBConnection();
                 Connection conn = awb_connection.connect();
 
                 // Get the UID
-                uid = Integer.parseInt(txtId.getText());
+                int mezza_id = Integer.parseInt(txtId.getText());
 
                 String name = txtName.getText();
                 String tower = txtTower.getText();
                 String unit = txtUnit.getText();
                 String cStatus = txtCStatus.getText();
+                String info = txtInfo.getText();
 
-                boolean update = awb_connection.update(uid, name, tower, unit, cStatus);
+                boolean update = awb_connection.update(mezza_id, name, tower, unit, cStatus, info);
 
-                if(update) lblStatus.setText("<html><span style='font-size:50px; color:green;'>RECORD UPDATED</span></html>");
+                LOGGER.info("Update result: " + update);
+
+                if(update) {
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("RECORD UPDATED");
+                }
 
                 conn.close();
 
@@ -214,31 +244,26 @@ public class EditEntry extends JFrame implements ActionListener {
         }
     }
 
+    @Override
     public void actionPerformed(ActionEvent ae){
         String action = ae.getActionCommand();
 
         if(action.equals("save")) save();
-        else if(action.equals("close")) dispose();
+        else if(action.equals("close")) {
+            LOGGER.fine("Destroying this window...");
+            Main.active = false;
+            dispose();
+            LOGGER.fine("EditEntry destroyed.");
+        }
         else if(action.equals("delete")) delete();
-        else save();
 
     }
 
     private ActionListener searchListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            search();
-        }
-    };
-
-    private void search(){
-        if(txtId.getText().length() <= 0){
-            lblStatus.setForeground(Color.red);
-            lblStatus.setText("INCOMPLETE DETAILS");
-            clear();
-        }else{
+            LOGGER.fine("Searching Mezza ID...");
             try{
-
                 AWBConnection awb_connection = new AWBConnection();
                 Connection conn = awb_connection.connect();
 
@@ -253,8 +278,6 @@ public class EditEntry extends JFrame implements ActionListener {
 
                     clear();
 
-                    ct.waitForCardAbsent(0);
-
                     return;
                 }else{
                     txtId.setText(String.format("%04d", Integer.parseInt(member.get(0))));
@@ -263,51 +286,28 @@ public class EditEntry extends JFrame implements ActionListener {
                     txtUnit.setText(member.get(3));
                     txtCStatus.setText(member.get(4));
                     txtInfo.setText(member.get(5));
+
+                    // Valid search, enable buttons
+                    btnSave.setEnabled(true);
+                    btnDelete.setEnabled(true);
+
+                    lblStatus.setForeground(Color.decode("#666666"));
+                    lblStatus.setText("RECORD FOUND");
                 }
 
                 conn.close();
-
-                ct.waitForCardAbsent(0);
-
-                // Transaction OK, enable buttons
-                btnDelete.setEnabled(true);
-                btnSave.setEnabled(true);
-
-                // Ready for next transaction
-                lblStatus.setForeground(Color.decode("#666666"));
-                lblStatus.setText("TAP YOUR CARD");
-
-            }catch (CommunicationsException ce){
-                System.out.println("Communications exception caught");
-                lblStatus.setForeground(Color.red);
-                lblStatus.setText("PLEASE CHECK CONNECTION");
-                clear();
-            }catch (MySQLNonTransientException e){
-                System.out.println("MySQL Non-transient connection exception caught");
-//                e.printStackTrace();
-                clear();
-            }catch (ClassNotFoundException cnfe){
-                System.out.println("No driver found");
-                lblStatus.setForeground(Color.red);
-                lblStatus.setText("NO DRIVER FOUND. PLEASE CONTACT DEVELOPER.");
-                clear();
-            }catch (SQLException sqle){
-                sqle.printStackTrace();
-                System.out.println("SQL exception caught");
-                lblStatus.setForeground(Color.red);
-                lblStatus.setText("SQL ERROR");
-                clear();
-            }catch (CardException ce){
-                ce.printStackTrace();
-                clear();
             }catch (NumberFormatException nfe){
-//                nfe.printStackTrace();
+                LOGGER.warning("Invalid Mezza ID data type");
                 lblStatus.setForeground(Color.red);
-                lblStatus.setText("NOT A VALID ID");
+                lblStatus.setText("INVALID MEZZA ID");
+
                 clear();
             }
+            catch (Exception ee){
+                ee.printStackTrace();
+            }
         }
-    }
+    };
 
     private void clear(){
         txtId.setText("0000");
@@ -317,6 +317,7 @@ public class EditEntry extends JFrame implements ActionListener {
         txtCStatus.setText("-");
         txtInfo.setText("");
 
+        btnSave.setEnabled(false);
         btnDelete.setEnabled(false);
     }
 
@@ -479,19 +480,22 @@ public class EditEntry extends JFrame implements ActionListener {
         setUndecorated(true);
         setExtendedState(MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
         // Press enter on the ID field
         txtId.addActionListener(searchListener);
 
-        // Press enter on the status field
-//        txtCStatus.addActionListener(this);
+        btnClose.setActionCommand("close");
+        btnClose.addActionListener(this);
+
+        btnSave.setActionCommand("save");
+        btnSave.addActionListener(this);
 
         // Disable delete and update button by default
         btnDelete.setEnabled(false);
         btnSave.setEnabled(false);
 
-//        cardWorker.execute();
+        cardWorker.execute();
 
     }
 

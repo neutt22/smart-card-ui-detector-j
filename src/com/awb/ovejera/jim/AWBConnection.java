@@ -78,9 +78,9 @@ public class AWBConnection {
         return false;
     }
 
-    public boolean update(int uid, String name, String tower, String unit, String cStatus){
+    public boolean update(int mezza_id, String name, String tower, String unit, String cStatus, String info){
 
-        String sql = "update db_awb.members set name=?, tower=?, unit=?, status=? where uid=?";
+        String sql = "update db_awb.members set name=?, tower=?, unit=?, status=?, mezza_info=? where mezza_id=?";
 
         try {
             preparedStatement = connection.prepareStatement(sql);
@@ -88,11 +88,12 @@ public class AWBConnection {
             preparedStatement.setString(2, tower);
             preparedStatement.setString(3, unit);
             preparedStatement.setString(4, cStatus);
-            preparedStatement.setInt(5, uid);
+            preparedStatement.setString(5, info);
+            preparedStatement.setInt(6, mezza_id);
 
-            int res = preparedStatement.executeUpdate();
+            preparedStatement.executeUpdate();
 
-            return res == 1;
+            return true;
         }catch (SQLException sqle){
             sqle.printStackTrace();
         }
