@@ -389,7 +389,7 @@ public class Main extends JFrame implements ActionListener, KeyListener {
         if(ke.getKeyCode() == KeyEvent.VK_N){
             new NewEntry().setVisible(true);
         }else if(ke.getKeyCode() == KeyEvent.VK_E){
-            new EditEntry().setVisible(true);
+            new EditEntry().setVisible(true); // TODO: Keep IdleWindow closed when registering members
         }else if(ke.getKeyCode() == KeyEvent.VK_P){
             // TODO: Dump log table to Excel sheet
         }
